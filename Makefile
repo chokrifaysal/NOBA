@@ -23,7 +23,7 @@ $(BOOT_BIN): $(BOOT_SRC)
 	mkdir -p build
 	$(ASM) $(ASMFLAGS) $< -o $@
 
-$(KERNEL_BIN): $(KERNEL_SRC)
+$(KERNEL_BIN): $(KERNEL_SRC) kernel/vga.asm
 	mkdir -p build
 	$(ASM) $(ASMFLAGS) $< -o $@
 
