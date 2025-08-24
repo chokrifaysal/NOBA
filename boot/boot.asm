@@ -52,7 +52,7 @@ boot_start:
     mov bx, KERNEL_LOAD_SEGMENT
     mov es, bx
     mov bx, KERNEL_LOAD_OFFSET
-    mov dh, 4          ; Number of sectors to read (kernel stub size)
+    mov dh, 8          ; Increased sectors to read (kernel is larger now)
     mov dl, [boot_drive]
     mov ch, 0          ; Cylinder 0
     mov cl, 2          ; Start from sector 2 (after boot sector)
