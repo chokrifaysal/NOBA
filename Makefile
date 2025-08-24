@@ -2,11 +2,15 @@
 # Supports building bootloader, kernel, and creating disk image
 
 ASM = nasm
-ASMFLAGS = -f bin
+ASMFLAGS = -f elf32
+CC = gcc
+CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -Wall -Wextra -I./kernel
 
 BOOT_SRC = boot/boot.asm
 BOOT_BIN = build/boot.bin
 KERNEL_SRC = kernel/kernel.asm
+KERNEL_OBJ = build/kernel.o
+ISR_OBJ = build/isr.o
 KERNEL_BIN = build/kernel.bin
 DISK_IMG = build/noba.img
 
@@ -23,9 +27,17 @@ $(BOOT_BIN): $(BOOT_SRC)
 	mkdir -p build
 	$(ASM) $(ASMFLAGS) $< -o $@
 
-$(KERNEL_BIN): $(KERNEL_SRC) kernel/vga.asm
+$(KERNEL_BIN): $(KERNEL_OBJ) $(ISR_OBJ)
+	ld -m elf_i386 -Ttext 0x10000 -o build/kernel.elf $(KERNEL_OBJ) $(ISR_OBJ)
+	objcopy -O binary build/kernel.elf $@
+
+$(KERNEL_OBJ): $(KERNEL_SRC) kernel/vga.asm kernel/idt.asm
 	mkdir -p build
 	$(ASM) $(ASMFLAGS) $< -o $@
+
+$(ISR_OBJ): kernel/isr.c kernel/vga.h
+	mkdir -p build
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -rf build
