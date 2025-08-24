@@ -45,6 +45,7 @@ gdt_start:
     ; Null descriptor
     dq 0
 
+gdt_code:
     ; Code segment descriptor
     dw 0xFFFF          ; Limit (0-15)
     dw 0x0000          ; Base (0-15)
@@ -53,6 +54,7 @@ gdt_start:
     db 11001111b       ; Flags (granularity, 32-bit) + Limit (16-19)
     db 0x00            ; Base (24-31)
 
+gdt_data:
     ; Data segment descriptor
     dw 0xFFFF          ; Limit (0-15)
     dw 0x0000          ; Base (0-15)
