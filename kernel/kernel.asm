@@ -99,6 +99,9 @@ protected_mode_start:
 ; Include VGA driver
 %include "kernel/vga.asm"
 
+; Include IDT setup
+%include "kernel/idt.asm"
+
 ; Kernel main function
 kernel_main:
     ; Initialize VGA
@@ -108,10 +111,65 @@ kernel_main:
     mov esi, protected_msg
     call vga_print
     
+    ; Initialize IDT
+    call init_idt
+    
+    ; Load IDT
+    call idt_load
+    
+    ; Test exception handling
+    call test_exception
+    
     ; Halt for now
     jmp $
 
-protected_msg db "NOBA OS running in protected mode!", 0
+init_idt:
+    ; Set up exception handlers
+    mov ebx, 0x8E      ; Present, ring 0, interrupt gate
+    
+    ; Set up first 32 entries (CPU exceptions)
+    mov ecx, 0
+.setup_loop:
+    cmp ecx, 32
+    jge .setup_done
+    
+    ; Calculate handler address
+    mov eax, [isr_stubs + ecx * 4]
+    
+    ; Set IDT entry
+    push ebx
+    push eax
+    push ecx
+    call idt_set_entry
+    add esp, 12
+    
+    inc ecx
+    jmp .setup_loop
+    
+.setup_done:
+    ret
+
+test_exception:
+    ; Test division by zero exception
+    mov esi, test_msg
+    call vga_print
+    
+    ; This will trigger a division by zero
+    mov eax, 1
+    mov ebx, 0
+    div ebx
+    
+    ret
+
+; Array of ISR stub addresses
+isr_stubs:
+    dd isr0, isr1, isr2, isr3, isr4, isr5, isr6, isr7
+    dd isr8, isr9, isr10, isr11, isr12, isr13, isr14, isr15
+    dd isr16, isr17, isr18, isr19, isr20, isr21, isr22, isr23
+    dd isr24, isr25, isr26, isr27, isr28, isr29, isr30, isr31
+
+protected_msg db "NOBA OS running in protected mode!", 0xA, 0
+test_msg db "Testing exception handling...", 0xA, 0
 
 ; Pad kernel to multiple of 512 bytes
-times 4096-($-kernel_start) db 0
+times 8192-($-kernel_start) db 0
